@@ -244,7 +244,12 @@ def williams_r(data, periods=14, high_col='adj_high', low_col='adj_low', close_c
 
 It is a technical trading momentum indicator that uses volume flow to predict changes in stock price. OBV is generally used to confirm price moves: the idea is that volume is higher on days where the price move is in the dominant direction, for example in a strong uptrend there is more volume on up days than down days.
 
-$${\displaystyle OBV=OBV_{prev}+\left\{{\begin{matrix}volume&\mathrm {if} \ close>close_{prev}\\0&\mathrm {if} \ close=close_{prev}\\-volume&\mathrm {if} \ close< close_{prev}\end{matrix}}\right.}$$
+$$OBV=  OBV_{prev} + 
+\begin{cases}
+    volume,& \text{if } close > close_{prev}\\
+    0,&       \text{if } close = close_{prev}\\
+    -volume,& \text{if } close < close_{prev}
+\end{cases}$$
 
 ![image](https://raphaellederman.github.io/assets/images/obv.png){:height="50%" width="100%"}
 
