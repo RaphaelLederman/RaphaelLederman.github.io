@@ -154,6 +154,37 @@ def ease_of_movement(data, period=14, high_col='adj_high', low_col='adj_low', vo
     return data
 ```
 
+## Mass Index
+
+It uses the high-low range to identify trend reversals based on range expansions. In this sense, it is a volatility indicator that does not have a directional bias. Instead, the Mass Index identifies range bulges that can foreshadow a reversal of the current trend. There are four parts involved in the Mass Index calculation:
+* Single EMA : 9-period EMA of the high-low differential.
+$$Single\;EMA_{t} = EMA_{9}(P^{High} + P{Low})$$
+* Double EMA : 9-period EMA of the 9-period EMA of the high-low differential.
+$$Double\;EMA_{t} = EMA_{9}(EMA_{9}(P^{High} + P{Low}))$$
+* EMA Ratio : Single EMA divided by Double EMA.
+$$EMA\;Ratio_{t} = \frac{Single\;EMA_{t}}{Double\;EMA_{t}}$$ 
+* Mass Index : 25-period sum of the EMA Ratio.
+$$Mass\;Index_{t} = \sum_{i=1}^{25}EMA\;Ratio_{t-i+1}$$
+
+![image](https://raphaellederman.github.io/assets/images/mass.png){:height="50%" width="100%"}
+
+```python
+def mass_index(data, period=25, ema_period=9, high_col='adj_high', low_col='adj_low'):
+    high_low = data[high_col] - data[low_col] + 0.000001    #this is to avoid division by zero below
+    ema = high_low.ewm(ignore_na=False, min_periods=0, com=ema_period, adjust=True).mean()
+    ema_ema = ema.ewm(ignore_na=False, min_periods=0, com=ema_period, adjust=True).mean()
+    div = ema / ema_ema
+
+    for index, row in data.iterrows():
+        if index >= period:
+            val = div[index-25:index].sum()
+        else:
+            val = 0
+        data.at[index, 'mass_index']= val
+         
+    return data
+```
+
 ## Average Directional Movement Index
 
 It identifies in which direction the price of an asset is moving by comparing prior highs and lows and drawing two lines: a positive directional movement line ($$DI^+$$) and a negative directional movement line ($$DI^-$$). An optional third line, called directional movement ($$DX$$) gives the signal strength. When $$DI^+$$ is above $$DI^-$$, there is more upward pressure than downward pressure in the price.  Crossovers between the lines are sometimes used as trade signals to buy or sell by technical traders.
