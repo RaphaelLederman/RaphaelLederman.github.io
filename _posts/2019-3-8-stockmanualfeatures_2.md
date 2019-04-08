@@ -83,3 +83,74 @@ def average_true_range(data, trend_periods=14, open_col='adj_open', high_col='ad
     return data
 ```
 
+
+## Chaikin Oscillator
+
+It applies MACD to the accumulation-distribution line rather than closing price. To calculate the Chaikin Oscillator, we subtract a 10-day EMA of the accumulation-distribution line from a 3-day EMA of the accumulation-distribution line. This measures momentum predicted by oscillations around the accumulation-distribution line.
+
+$$Chaikin\;Oscillator_{t} = EMA_{3}(ADL) - EMA_{10}(ADL)$$
+
+![image](https://raphaellederman.github.io/assets/images/chaikin.png){:height="50%" width="100%"}
+
+```python
+def chaikin_oscillator(data, periods_short=3, periods_long=10, high_col='adj_high',
+                       low_col='adj_low', close_col='adj_close', vol_col='adj_volume'):
+    ac = pd.Series([])
+    val_last = 0
+    
+    for index, row in data.iterrows():
+        if row[high_col] != row[low_col]:
+            val = val_last + ((row[close_col] - row[low_col]) - (row[high_col] - row[close_col])) / (row[high_col] - row[low_col]) * row[vol_col]
+        else:
+            val = val_last
+        ac.at[index]= val
+    val_last = val
+
+    ema_long = ac.ewm(ignore_na=False, min_periods=0, com=periods_long, adjust=True).mean()
+    ema_short = ac.ewm(ignore_na=False, min_periods=0, com=periods_short, adjust=True).mean()
+    data['ch_osc'] = ema_short - ema_long
+
+    return data
+```
+
+## Ease of Movement
+
+This oscillator shows the relationship between price and volume and fluctuates around zero. In general, prices are advancing with relative ease when the oscillator is in positive territory. Conversely, prices are declining with relative ease when the oscillator is in negative territory. There are two parts to the EMV formula: 
+* Distance Moved : it is calculated by comparing the current period's midpoint with the prior period's midpoint, which is the mean between the high and the low. Distance Moved is positive when the current midpoint is above the prior midpoint and negative when the current midpoint is below the prior midpoint.
+$$Distance\;Moved_{t} = ((P_{t}^{High} + P_{t}^{Low}) / 2 - (P_{t-1}^{High} + P_{t-1}^{Low})/2)$$
+* Box Ratio : it increases with volume and decreases with the high-low range
+$$Box\;Ratio_{t} = ((Volume_{t}/100,000,000)/(P_{t}^{High} + P_{t}^{Low}))$$
+
+$$EMV_{t}^{1\;period} = Distance\;Moved_{t} / Box\;Ratio_{t}$$
+
+$$EMV_{t}^{n\;period} = \frac{1}{n} \sum_{i=1}^{n}EMV_{t-i+1}^{1\;period}$$
+
+![image](https://raphaellederman.github.io/assets/images/eom.png){:height="50%" width="100%"}
+
+```python
+def ease_of_movement(data, period=14, high_col='adj_high', low_col='adj_low', vol_col='adj_volume'):
+    for index, row in data.iterrows():
+        if index > 0:
+            midpoint_move = (row[high_col] + row[low_col]) / 2 - (data.at[index - 1, high_col] + data.at[index - 1, low_col]) / 2
+        else:
+            midpoint_move = 0
+        
+        diff = row[high_col] - row[low_col]
+        
+        if diff == 0:
+            #this is to avoid division by zero below
+            diff = 0.000000001          
+            
+        vol = row[vol_col]
+        if vol == 0:
+            vol = 1
+        box_ratio = (vol / 100000000) / (diff)
+        emv = midpoint_move / box_ratio
+        
+        data.at[index, 'emv']= emv
+        
+    data['emv_ema_'+str(period)] = data['emv'].ewm(ignore_na=False, min_periods=0, com=period, adjust=True).mean()
+        
+    return data
+```
+
