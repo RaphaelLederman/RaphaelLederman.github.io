@@ -157,14 +157,6 @@ def ease_of_movement(data, period=14, high_col='adj_high', low_col='adj_low', vo
 ## Mass Index
 
 It uses the high-low range to identify trend reversals based on range expansions. In this sense, it is a volatility indicator that does not have a directional bias. Instead, the Mass Index identifies range bulges that can foreshadow a reversal of the current trend. There are four parts involved in the Mass Index calculation:
-* Single EMA : 9-period EMA of the high-low differential.
-$$Single\;EMA_{t} = EMA_{9}(P^{High} + P{Low})$$
-* Double EMA : 9-period EMA of the 9-period EMA of the high-low differential.
-$$Double\;EMA_{t} = EMA_{9}(EMA_{9}(P^{High} + P{Low}))$$
-* EMA Ratio : Single EMA divided by Double EMA.
-$$EMA\;Ratio_{t} = \frac{Single\;EMA_{t}}{Double\;EMA_{t}}$$ 
-* Mass Index : 25-period sum of the EMA Ratio.
-$$Mass\;Index_{t} = \sum_{i=1}^{25}EMA\;Ratio_{t-i+1}$$
 
 ```python
 def mass_index(data, period=25, ema_period=9, high_col='adj_high', low_col='adj_low'):
