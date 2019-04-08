@@ -1,6 +1,6 @@
 ---
 published: true
-title: Manual Feature Extraction (1/2)
+title: Manual Feature Extraction
 collection: articles
 layout: single
 author_profile: false
