@@ -14,7 +14,7 @@ toc: true
 toc_sticky: true
 ---
 
-In this fourth article related to stock market predictions, we will go through a deep learning classification algorithm inspired by both Convolutional Neural Networks and Recurrent Neural Networks. This model is innovative in its essence : it takes as input not only regular stock data like daily open, low, high, close prices and volumes, but also manually computed features (including conventional indicators such as short-term and long-term Exponential Moving Averages, Moving Average Convergence Divergence, Bollinger Bands, Price-Volume Trends, ARMA, Fourier Transforms etc.) and a representation of all this data learned through a custom Bidirectional Generative Adversarial Network.
+In this fifth article related to stock market predictions, we will go through a deep learning classification algorithm inspired by both Convolutional Neural Networks and Recurrent Neural Networks. This model is innovative in its essence : it takes as input not only regular stock data like daily open, low, high, close prices and volumes, but also manually computed features (including conventional indicators such as short-term and long-term Exponential Moving Averages, Moving Average Convergence Divergence, Bollinger Bands, Price-Volume Trends, ARMA, Fourier Transforms etc.) and a representation of all this data learned through a custom Bidirectional Generative Adversarial Network.
 
 <script type="text/javascript" async
     src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">

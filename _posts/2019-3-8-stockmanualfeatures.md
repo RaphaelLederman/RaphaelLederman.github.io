@@ -1,6 +1,6 @@
 ---
 published: true
-title: Data Retrieving and Manual Feature Extraction
+title: Manual Feature Extraction (1/2)
 collection: articles
 layout: single
 author_profile: false
