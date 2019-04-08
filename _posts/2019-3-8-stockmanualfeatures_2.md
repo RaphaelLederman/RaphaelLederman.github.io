@@ -47,3 +47,39 @@ def price_volume_trend(data, trend_periods=21, close_col='adj_close', vol_col='a
     return data
 ```
 
+
+## Average True Range
+
+It is a technical analysis indicator that measures market volatility by decomposing the entire range of an asset price for that period. The True Range indicator is taken as the greatest of the following: 
+* Current high less the current low
+* Absolute value of the current high less the previous close
+* Absolute value of the current low less the previous close.
+The average true range is then a moving average of the true ranges.
+
+$$TR_{t} = max[(P_{t}^{High} - P_{t}^{Low}), abs(P_{t}^{High} - P_{t-1}^{Close}), abs(P_{t}^{Low} - P_{t-1}^{Close})]$$
+
+$$ATR_{t} = \frac{1}{n} \sum_{i=1}^{n}TR_{t-i+1}$$
+
+![image](https://raphaellederman.github.io/assets/images/atr.png){:height="50%" width="100%"}
+
+```python
+def average_true_range(data, trend_periods=14, open_col='adj_open', high_col='adj_high', low_col='adj_low', close_col='adj_close', drop_tr = True):
+    for index, row in data.iterrows():
+        prices = [row[high_col], row[low_col], row[close_col], row[open_col]]
+        if index > 0:
+            val1 = np.amax(prices) - np.amin(prices)
+            val2 = abs(np.amax(prices) - data.at[index - 1, close_col])
+            val3 = abs(np.amin(prices) - data.at[index - 1, close_col])
+            true_range = np.amax([val1, val2, val3])
+
+        else:
+            true_range = np.amax(prices) - np.amin(prices)
+
+        data.at[index, 'true_range']= true_range
+    data['atr'] = data['true_range'].ewm(ignore_na=False, min_periods=0, com=trend_periods, adjust=True).mean()
+    if drop_tr:
+        data = data.drop(['true_range'], axis=1)
+        
+    return data
+```
+
