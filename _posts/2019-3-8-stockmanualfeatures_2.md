@@ -166,8 +166,6 @@ $$EMA\;Ratio_{t} = \frac{Single\;EMA_{t}}{Double\;EMA_{t}}$$
 * Mass Index : 25-period sum of the EMA Ratio.
 $$Mass\;Index_{t} = \sum_{i=1}^{25}EMA\;Ratio_{t-i+1}$$
 
-![image](https://raphaellederman.github.io/assets/images/mass.png){:height="50%" width="100%"}
-
 ```python
 def mass_index(data, period=25, ema_period=9, high_col='adj_high', low_col='adj_low'):
     high_low = data[high_col] - data[low_col] + 0.000001    #this is to avoid division by zero below
