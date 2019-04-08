@@ -14,9 +14,7 @@ Here you will find short articles that I write during my free time.
 
 [Data Retrieving](https://raphaellederman.github.io/articles/stockintro/)
 
-[Manual Feature Extraction (1/2)](https://raphaellederman.github.io/articles/stockmanualfeatures/)
-
-[Manual Feature Extraction (2/2)](https://raphaellederman.github.io/articles/stockmanualfeatures_2/)
+[Manual Feature Extraction](https://raphaellederman.github.io/articles/stockmanualfeatures/)
 
 [Unsupervised Feature Extraction with a custom Bidirectional GAN](https://raphaellederman.github.io/articles/stockadversarialfeatures/)
 
