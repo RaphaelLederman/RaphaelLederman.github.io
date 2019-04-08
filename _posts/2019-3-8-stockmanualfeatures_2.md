@@ -154,3 +154,94 @@ def ease_of_movement(data, period=14, high_col='adj_high', low_col='adj_low', vo
     return data
 ```
 
+## Mass Index
+
+It uses the high-low range to identify trend reversals based on range expansions. In this sense, it is a volatility indicator that does not have a directional bias. Instead, the Mass Index identifies range bulges that can foreshadow a reversal of the current trend. There are four parts involved in the Mass Index calculation:
+* Single EMA : 9-period EMA of the high-low differential)
+$$Single\;EMA_{t} = EMA_{9}(P^{High} + P{Low})$$
+* Double EMA : 9-period EMA of the 9-period EMA of the high-low differential)
+$$Double\;EMA_{t} = EMA_{9}(EMA_{9}(P^{High} + P{Low}))$$
+* EMA Ratio : Single EMA divided by Double EMA
+$$EMA\;Ratio_{t} = \frac{Single\;EMA_{t}}{Double\;EMA_{t}}$$ 
+* Mass Index : 25-period sum of the EMA Ratio
+$$Mass\;Index_{t} = \sum_{i=1}^{25}EMA\;Ratio_{t-i+1}$$
+
+![image](https://raphaellederman.github.io/assets/images/mass.png){:height="50%" width="100%"}
+
+```python
+def mass_index(data, period=25, ema_period=9, high_col='adj_high', low_col='adj_low'):
+    high_low = data[high_col] - data[low_col] + 0.000001    #this is to avoid division by zero below
+    ema = high_low.ewm(ignore_na=False, min_periods=0, com=ema_period, adjust=True).mean()
+    ema_ema = ema.ewm(ignore_na=False, min_periods=0, com=ema_period, adjust=True).mean()
+    div = ema / ema_ema
+
+    for index, row in data.iterrows():
+        if index >= period:
+            val = div[index-25:index].sum()
+        else:
+            val = 0
+        data.at[index, 'mass_index']= val
+         
+    return data
+```
+
+## Average Directional Movement Index
+
+It identifies in which direction the price of an asset is moving by comparing prior highs and lows and drawing two lines: a positive directional movement line ($$DI^+$$) and a negative directional movement line ($$DI^-$$). An optional third line, called directional movement ($$DX$$) gives the signal strength. When $$DI^+$$ is above $$DI^-$$, there is more upward pressure than downward pressure in the price.  Crossovers between the lines are sometimes used as trade signals to buy or sell by technical traders.
+
+$$DI^{+} = \frac{EMA_{14}(DM_{t}^{+})}{TR_{t}}$$
+$$DI^{-} = \frac{EMA_{14}(DM_{t}^{-})}{TR_{t}}$$
+$${\displaystyle DX=100.{\frac {|DI^{+}-DI^{-}|}{DI^{+}+DI^{-}}}}$$
+$${\displaystyle {\textit {ADX}}={EMA_{100}}(DX)}$$
+
+$$\textit{with}$$
+$${\displaystyle DM_{t}^{+}=\left\{{\begin{matrix}M_{t}^{+},&\mathrm {if} \ M_{t}^{+}>M_{t}^{-}\ {\textit {and}}\ M_{t}^{+}>0\\0,&\mathrm {if} \ M_{t}^{+}<M_{t}^{-}\ {\textit {or}}\ +M_{t}^{+}<0\end{matrix}}\right.}$$
+$${\displaystyle DM_{t}^{-}=\left\{{\begin{matrix}0,&\mathrm {if} \ M_{t}^{-}<M_{t}^{+}\ {\textit {or}}\ M_{t}^{-}<0\\M_{t}^{-},&\mathrm {if} \ M_{t}^{-}>M_{t}^{+}\ {\textit {and}}\ M_{t}^{-}>0\end{matrix}}\right.}$$
+
+$$\textit{where}$$
+$${\displaystyle M_{t}^{+}={\textit {P}}_{t}^{High}-{\textit {P}}_{t-1}^{High}}$$
+$${\displaystyle M_{t}^{-}={\textit {P}}_{t-1}^{Low}-{\textit {P}}_{t}^{Low}}$$
+
+$$\textit{and}$$
+$$TR_{t} = max[(P_{t}^{High} - P_{t}^{Low}), abs(P_{t}^{High} - P_{t-1}^{Close}), abs(P_{t}^{Low} - P_{t-1}^{Close})]$$
+
+![image](https://raphaellederman.github.io/assets/images/adi.png){:height="50%" width="100%"}
+
+```python
+def directional_movement_index(data, periods=14, high_col='adj_high', low_col='adj_low'):
+    remove_tr_col = False
+    if not 'true_range' in data.columns:
+        data = average_true_range(data, drop_tr = False)
+        remove_tr_col = True
+
+    data['m_plus'] = 0.
+    data['m_minus'] = 0.
+    
+    for i,row in data.iterrows():
+        if i>0:
+            data.at[i, 'm_plus'] = row[high_col] - data.at[i-1, high_col]
+            data.at[i, 'm_minus'] =  row[low_col] - data.at[i-1, low_col]
+    
+    data['dm_plus'] = 0.
+    data['dm_minus'] = 0.
+    
+    for i,row in data.iterrows():
+        if row['m_plus'] > row['m_minus'] and row['m_plus'] > 0:
+            data.at[i, 'dm_plus']= row['m_plus']
+            
+        if row['m_minus'] > row['m_plus'] and row['m_minus'] > 0:
+            data.at[i, 'dm_minus']= row['m_minus']
+    
+    data['di_plus'] = (data['dm_plus'] / data['true_range']).ewm(ignore_na=False, min_periods=0, com=periods, adjust=True).mean()
+    data['di_minus'] = (data['dm_minus'] / data['true_range']).ewm(ignore_na=False, min_periods=0, com=periods, adjust=True).mean()
+    
+    data['dxi'] = np.abs(data['di_plus'] - data['di_minus']) / (data['di_plus'] + data['di_minus'])
+    data.at[0, 'dxi']=1.
+    data['adx'] = data['dxi'].ewm(ignore_na=False, min_periods=0, com=periods, adjust=True).mean()
+    data = data.drop(['m_plus', 'm_minus', 'dm_plus', 'dm_minus'], axis=1)
+    if remove_tr_col:
+        data = data.drop(['true_range'], axis=1)
+         
+    return data
+```
+
