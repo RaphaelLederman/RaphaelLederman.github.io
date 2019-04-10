@@ -14,13 +14,32 @@ toc: true
 toc_sticky: true
 ---
 
-In this second article, we will then describe some of the additional features and indicators that will be used in our deep learning classifier. Finally, we will provide the code for sending requests to the Quandl API, and computing various technical indicators and features on stock data. I am personally not convinced by the reliability of technical indicators in the context of trading strategies, but technical analysts believe that patterns in the ups and downs of equity prices can be valuable indicators of the security's future price movements. This statement goes against the efficient market hypothesis (EMH) stating that asset prices fully reflect all available information and challenging the notion that past price and volume data can have any relationship with future movements. Nevertheless, some traders contend that if enough investors are using similar technical valuation techniques, a self-fulfilling prophesy might emerge : this is the reason why we chose to add such indicators in our dataset in order to exploit existing patterns.
+In this second article, we are going to describe some of the additional features and indicators that will be used as input to our deep learning classifier. I am personally not convinced by the reliability of technical indicators in the context of trading strategies, but technical analysts believe that patterns in the ups and downs of equity prices can be valuable indicators of the security's future price movements. This statement goes against the efficient market hypothesis (EMH), stating that asset prices fully reflect all available information and challenging the notion that past price and volume data can have any relationship with future movements. Nevertheless, some traders contend that if enough investors are using similar technical valuation techniques, a self-fulfilling prophesy might emerge : this is the reason why we chose to add such indicators in our dataset in order to exploit existing patterns.
 
-In order to understand the patterns that might affect whether a stock price will move up or down, we need to build the most complete dataset possible, including various technical indicators and features. Let's define some of the features we chose to incorporate in our analysis.
+In order to understand the patterns that might affect whether a stock price will move up or down, we need to build the most complete dataset possible, including the various technical indicators and features we chose to include in our analysis.
 
 <script type="text/javascript" async
     src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
 </script>
+
+## Discrete Fourier Transforms
+
+It is commonly used in order to display several long and short-term trends and eliminate noise in the data. Mathematically speaking, these transforms take a time series and map it into a frequency spectrum. It decomposes a function into sinusoids of different frequencies. Given a discrete-time signal $$x_n$$, $$n=0$$,$$ … $$, $$N-1$$, the Discrete Fourier Transform can be defined as :
+$$ X_k =  \sum\limits_{n=0}^{N-1} x_ke^{\frac{-i2\pi}{N}kn} \hspace{1cm} k=0, ..., N-1 $$
+The Discrete Fourier Transform outputs a sequence of N coefficient $$X_k$$ constituting the frequency domain representation of a signal. 
+
+```python
+def fourier(data, close_col='adj_close',  n_components = [3, 6, 9, 100]):
+    close_fft = np.fft.fft(np.asarray(data[close_col].tolist()))
+    data['fft'] = close_fft
+    fft_list = np.asarray(data['fft'].tolist())
+    for num_ in n_components:
+        fft_list_m10= np.copy(fft_list); fft_list_m10[num_:-num_]=0
+        data['ifft_'+str(num_)]=np.real(np.fft.ifft(fft_list_m10))
+    return data
+```
+
+![image](https://raphaellederman.github.io/assets/images/fourier.png){:height="50%" width="100%"}
 
 ## Exponential Moving Average
 
@@ -45,6 +64,7 @@ It is a trend following momentum indicator calculated by subtracting the 26-peri
 
 $$MACD = EMA_{12}(P^{Close}) - EMA_{26}(P^{Close})$$
 
+![image](https://raphaellederman.github.io/assets/images/macd.png){:height="50%" width="100%"}
 
 ```python
 def macd(data, period_long=26, period_short=12, period_signal=9, column='adj_close'):
@@ -71,6 +91,8 @@ It compares where the current price is in relation to where the price was in the
 
 $$Momentum_{t}^{N} = P_{t}^{Close} - P_{t-N}^{Close}$$
 
+![image](https://raphaellederman.github.io/assets/images/momentum.png){:height="50%" width="100%"}
+
 ```python
 def momentum(data, periods=14, close_col='adj_close'):
     data['momentum'] = 0.
@@ -82,48 +104,6 @@ def momentum(data, periods=14, close_col='adj_close'):
 
             data.at[index, 'momentum']= val_perc
 
-    return data
-```
-
-## Relative Strength Index (RSI)
-
-It is a momentum oscillator that measures the magnitude of recent price changes to evaluate overbought or oversold conditions. RSI is considered overbought when above 70 and oversold when below 30 (these thresholds can be adjusted to better fit a particular security). For each trading period an upward change $$U_{t}$$ and downward change $$D_{t}$$ is calculated (if the last close is the same as the previous, both $$U_{t}$$ and $$U_{t}$$ are zero). 
-
-$$U_{t}=\begin{cases}S_{t} - S_{t-1}, & \text{if $S_{t}>S_{t-1}$}.\\0, & \text{if $S_{t}<S_{t-1}$}.\end{cases}$$
-
-$$D_{t}=\begin{cases}0, & \text{if $S_{t}>S_{t-1}$}.\\S_{t-1} - S_{t}, & \text{if $S_{t}<S_{t-1}$}.\end{cases}$$
-
-The average $$U$$ and $$D$$ are then calculated using an n-period smoothed or modified moving average (SMMA) which is an exponentially smoothed moving average with $$\alpha = \frac{1}{period}$$. The ratio of these averages is the relative strength factor.
-
-$$RSF = \frac{SMMA(U)}{SMMA(D)}$$. 
-
-The relative strength factor is then converted to a relative strength index between 0 and 100:
-
-$$RSI = 100 - \frac{100}{1+RSF}$$. 
-
-If the average of $$D$$ values is zero, then according to the equation, the RS value will approach infinity, so that the resulting RSI will approach 100.
-
-![image](https://raphaellederman.github.io/assets/images/rsi.png){:height="50%" width="100%"}
-
-```python
-def rsi(data, periods=14, close_col='adj_close'):
-    data['rsi_u'] = 0.
-    data['rsi_d'] = 0.
-    data['rsi'] = 0.
-    
-    for index,row in data.iterrows():
-        if index >= periods:
-            
-            prev_close = data.at[index-periods, close_col]
-            if prev_close < row[close_col]:
-                data.at[index, 'rsi_u']= row[close_col] - prev_close
-            elif prev_close > row[close_col]:
-                data.at[index, 'rsi_d']= prev_close - row[close_col]
-            
-    data['rsi'] = data['rsi_u'].ewm(ignore_na=False, min_periods=0, com=periods, adjust=True).mean() / (data['rsi_u'].ewm(ignore_na=False, min_periods=0, com=periods, adjust=True).mean() + data['rsi_d'].ewm(ignore_na=False, min_periods=0, com=periods, adjust=True).mean())
-    
-    data = data.drop(['rsi_u', 'rsi_d'], axis=1)
-        
     return data
 ```
 
@@ -163,80 +143,20 @@ def bollinger_bands(data, trend_periods=20, close_col='adj_close'):
     return data
 ```
 
-## Accumulation Distribution Line
+## Typical Price
 
-It is a volume-based indicator designed to measure the cumulative flow of money into and out of a security. It is a running total of each period's Money Flow Volume. First, a multiplier is calculated based on the relationship between the close and the high-low range. Second, the Money Flow Multiplier is multiplied by the period's volume to come up with a Money Flow Volume. Finally, a running total of the Money Flow Volume forms the Accumulation Distribution Line.
+Sometimes called the pivot point, it refers to the arithmetic average of the high, low, and closing prices for a given period. Some investors use the Typical Price rather than the closing price when creating moving average penetration systems.
 
-$$Money\;Flow\;Multiplier_{t} = [(P_{t}^{Close}  -  P_{t}^{Low}) - (P_{t}^{High} - P_{t}^{Close})] /(P_{t}^{High} - P_{t}^{Low})$$ 
+$$Typical\;Price_t = (P_{t}^{High} + P_{t}^{Low} + P_{t}^{Close})/3$$
 
-$$Money\;Flow\;Volume_{t} = Money\;Flow\;Multiplier_{t} \cdot Volume_{t}$$
+![image](https://raphaellederman.github.io/assets/images/typical.png){:height="50%" width="100%"}
 
-$$ADL_{t} = ADL_{t-1} + Money\;Flow\;Volume_{t}$$
-
-The indicator is used to either reinforce the underlying trend or cast doubts on its sustainability : an uptrend in prices with a downtrend in the Accumulation Distribution Line suggests underlying selling pressure that could foreshadow a bearish reversal on the price chart. A downtrend in prices with an uptrend in the Accumulation Distribution Line indicate underlying buying pressure that could foreshadow a bullish reversal in prices.
-
-![image](https://raphaellederman.github.io/assets/images/acc_dist.png){:height="50%" width="100%"}
 
 ```python
-def acc_dist(data, trend_periods=21, open_col='adj_open', high_col='adj_high', low_col='adj_low', close_col='adj_close', vol_col='adj_volume'):
-    for index, row in data.iterrows():
-        if row[high_col] != row[low_col]:
-            ac = ((row[close_col] - row[low_col]) - (row[high_col] - row[close_col])) / (row[high_col] - row[low_col]) * row[vol_col]
-        else:
-            ac = 0
-        data.at[index, 'acc_dist'] = ac
-    data['acc_dist_ema' + str(trend_periods)] = data['acc_dist'].ewm(ignore_na=False, min_periods=0, com=trend_periods, adjust=True).mean()
+def typical_price(data, high_col = 'adj_high', low_col = 'adj_low', close_col = 'adj_close'):
     
-    return data
-```
+    data['typical_price'] = (data[high_col] + data[low_col] + data[close_col]) / 3
 
-## Williams Accumulation Distribution
-
-It helps determining the trend direction: when price makes a new high and the indicator fails to exceed its previous high, distribution is taking place. When price makes a new low and the WAD fails to make a new low, accumulation is occurring. Usually, technical investors go long when there is a bullish divergence between WAD and price, go short on a bearish divergence. This indicator can be computed as follows:
-
-$$AD_{t}=\begin{cases}P_{t}^{Close}-min(P_{t-1}^{Close}, P_{t}^{Low}), & \text{if $P_{t}^{Close}>P_{t-1}^{Close}$}\\P_{t}^{Close}-max(P_{t-1}^{Close}, P_{t}^{High}), & \text{if $P_{t}^{Close}<P_{t-1}^{Close}$}\\0, & \text{else}\end{cases}$$
-
-$$Williams\;AD_{t} =Williams\;AD_{t-1} + AD_{t} * Volume_t$$
-
-```python
-def williams_ad(data, high_col='adj_high', low_col='adj_low', close_col='adj_close'):
-    data['williams_ad'] = 0.
-    
-    for index,row in data.iterrows():
-        if index > 0:
-            prev_value = data.at[index-1, 'williams_ad']
-            prev_close = data.at[index-1, close_col]
-            if row[close_col] > prev_close:
-                ad = row[close_col] - min(prev_close, row[low_col])
-            elif row[close_col] < prev_close:
-                ad = row[close_col] - max(prev_close, row[high_col])
-            else:
-                ad = 0.
-                                                                                                        
-            data.at[index, 'williams_ad'] = (ad+prev_value)
-        
-    return data
-```
-
-## Williams R
-
-It is a dynamic indicator which determines whether the market is overbought or oversold. It compares where a security's price closed relative to its price range over a given time period. Indicator values ranging between 80 and 100% indicate that the market is oversold. Indicator values ranging between 0 and 20% indicate that the market is overbought.
-
-$$\%R_{t} = -100 \cdot \frac{Highest\;High_t - P_{t}^{Close}}{Highest\;High_t - Lowest\;Low_{t}}$$
-
-$$\%R_{t} = -100 \cdot \frac{max\{P_{t-i+1}^{High}:\;i =1..n\} - P_{t}^{Close}}{max\{P_{t-i+1}^{High}:\;i =1..n\} - min\{P_{t-i+1}^{Low}:\;i =1..n\} }$$
-
-![image](https://raphaellederman.github.io/assets/images/wr.png){:height="50%" width="100%"}
-
-```python
-def williams_r(data, periods=14, high_col='adj_high', low_col='adj_low', close_col='adj_close'):
-    data['williams_r'] = 0.
-    
-    for index,row in data.iterrows():
-        if index > periods:
-            data.at[index, 'williams_r'] = ((max(data[high_col][index-periods:index]) - row[close_col]) / 
-                                                 (max(data[high_col][index-periods:index]) - min(data[low_col][index-periods:index])))
-        
     return data
 ```
 
@@ -274,6 +194,7 @@ def on_balance_volume(data, trend_periods=21, close_col='adj_close', vol_col='ad
     
     return data
 ```
+
 ## Price Volume Trend
 
 It is a momentum based indicator used to measure money flow. It is comparable to the On-Balance-Volume in the way that it is an accumulation of volume. While the OBV adds or subtracts total daily volume depending on if it was an up day or a down day, PVT only adds or subtracts a portion of the daily volume. The amount of volume added or subtracted to/from the PVT total is dependent on the amount of the current day's price rising or falling compared to the previous day's close. Price Volume Trend can primarily be used to confirm trends, as well as spot possible trading signals due to divergences.
@@ -333,35 +254,6 @@ def average_true_range(data, trend_periods=14, open_col='adj_open', high_col='ad
     if drop_tr:
         data = data.drop(['true_range'], axis=1)
         
-    return data
-```
-
-## Chaikin Oscillator
-
-It applies MACD to the accumulation-distribution line rather than closing price. To calculate the Chaikin Oscillator, we subtract a 10-day EMA of the accumulation-distribution line from a 3-day EMA of the accumulation-distribution line. This measures momentum predicted by oscillations around the accumulation-distribution line.
-
-$$Chaikin\;Oscillator_{t} = EMA_{3}(ADL) - EMA_{10}(ADL)$$
-
-![image](https://raphaellederman.github.io/assets/images/chaikin.png){:height="50%" width="100%"}
-
-```python
-def chaikin_oscillator(data, periods_short=3, periods_long=10, high_col='adj_high',
-                       low_col='adj_low', close_col='adj_close', vol_col='adj_volume'):
-    ac = pd.Series([])
-    val_last = 0
-    
-    for index, row in data.iterrows():
-        if row[high_col] != row[low_col]:
-            val = val_last + ((row[close_col] - row[low_col]) - (row[high_col] - row[close_col])) / (row[high_col] - row[low_col]) * row[vol_col]
-        else:
-            val = val_last
-        ac.at[index]= val
-    val_last = val
-
-    ema_long = ac.ewm(ignore_na=False, min_periods=0, com=periods_long, adjust=True).mean()
-    ema_short = ac.ewm(ignore_na=False, min_periods=0, com=periods_short, adjust=True).mean()
-    data['ch_osc'] = ema_short - ema_long
-
     return data
 ```
 
@@ -437,6 +329,156 @@ def mass_index(data, period=25, ema_period=9, high_col='adj_high', low_col='adj_
     return data
 ```
 
+## Relative Strength Index (RSI)
+
+It is a momentum oscillator that measures the magnitude of recent price changes to evaluate overbought or oversold conditions. RSI is considered overbought when above 70 and oversold when below 30 (these thresholds can be adjusted to better fit a particular security). For each trading period an upward change $$U_{t}$$ and downward change $$D_{t}$$ is calculated (if the last close is the same as the previous, both $$U_{t}$$ and $$U_{t}$$ are zero). 
+
+$$U_{t}=\begin{cases}S_{t} - S_{t-1}, & \text{if $S_{t}>S_{t-1}$}.\\0, & \text{if $S_{t}<S_{t-1}$}.\end{cases}$$
+
+$$D_{t}=\begin{cases}0, & \text{if $S_{t}>S_{t-1}$}.\\S_{t-1} - S_{t}, & \text{if $S_{t}<S_{t-1}$}.\end{cases}$$
+
+The average $$U$$ and $$D$$ are then calculated using an n-period smoothed or modified moving average (SMMA) which is an exponentially smoothed moving average with $$\alpha = \frac{1}{period}$$. The ratio of these averages is the relative strength factor.
+
+$$RSF = \frac{SMMA(U)}{SMMA(D)}$$. 
+
+The relative strength factor is then converted to a relative strength index between 0 and 100:
+
+$$RSI = 100 - \frac{100}{1+RSF}$$. 
+
+If the average of $$D$$ values is zero, then according to the equation, the RS value will approach infinity, so that the resulting RSI will approach 100.
+
+![image](https://raphaellederman.github.io/assets/images/rsi.png){:height="50%" width="100%"}
+
+```python
+def rsi(data, periods=14, close_col='adj_close'):
+    data['rsi_u'] = 0.
+    data['rsi_d'] = 0.
+    data['rsi'] = 0.
+    
+    for index,row in data.iterrows():
+        if index >= periods:
+            
+            prev_close = data.at[index-periods, close_col]
+            if prev_close < row[close_col]:
+                data.at[index, 'rsi_u']= row[close_col] - prev_close
+            elif prev_close > row[close_col]:
+                data.at[index, 'rsi_d']= prev_close - row[close_col]
+            
+    data['rsi'] = data['rsi_u'].ewm(ignore_na=False, min_periods=0, com=periods, adjust=True).mean() / (data['rsi_u'].ewm(ignore_na=False, min_periods=0, com=periods, adjust=True).mean() + data['rsi_d'].ewm(ignore_na=False, min_periods=0, com=periods, adjust=True).mean())
+    
+    data = data.drop(['rsi_u', 'rsi_d'], axis=1)
+        
+    return data
+```
+
+## Accumulation Distribution Line
+
+It is a volume-based indicator designed to measure the cumulative flow of money into and out of a security. It is a running total of each period's Money Flow Volume. First, a multiplier is calculated based on the relationship between the close and the high-low range. Second, the Money Flow Multiplier is multiplied by the period's volume to come up with a Money Flow Volume. Finally, a running total of the Money Flow Volume forms the Accumulation Distribution Line.
+
+$$Money\;Flow\;Multiplier_{t} = [(P_{t}^{Close}  -  P_{t}^{Low}) - (P_{t}^{High} - P_{t}^{Close})] /(P_{t}^{High} - P_{t}^{Low})$$ 
+
+$$Money\;Flow\;Volume_{t} = Money\;Flow\;Multiplier_{t} \cdot Volume_{t}$$
+
+$$ADL_{t} = ADL_{t-1} + Money\;Flow\;Volume_{t}$$
+
+The indicator is used to either reinforce the underlying trend or cast doubts on its sustainability : an uptrend in prices with a downtrend in the Accumulation Distribution Line suggests underlying selling pressure that could foreshadow a bearish reversal on the price chart. A downtrend in prices with an uptrend in the Accumulation Distribution Line indicate underlying buying pressure that could foreshadow a bullish reversal in prices.
+
+![image](https://raphaellederman.github.io/assets/images/acc_dist.png){:height="50%" width="100%"}
+
+```python
+def acc_dist(data, trend_periods=21, open_col='adj_open', high_col='adj_high', low_col='adj_low', close_col='adj_close', vol_col='adj_volume'):
+    for index, row in data.iterrows():
+        if row[high_col] != row[low_col]:
+            ac = ((row[close_col] - row[low_col]) - (row[high_col] - row[close_col])) / (row[high_col] - row[low_col]) * row[vol_col]
+        else:
+            ac = 0
+        data.at[index, 'acc_dist'] = ac
+    data['acc_dist_ema' + str(trend_periods)] = data['acc_dist'].ewm(ignore_na=False, min_periods=0, com=trend_periods, adjust=True).mean()
+    
+    return data
+```
+
+## Williams Accumulation Distribution
+
+It helps determining the trend direction: when price makes a new high and the indicator fails to exceed its previous high, distribution is taking place. When price makes a new low and the WAD fails to make a new low, accumulation is occurring. Usually, technical investors go long when there is a bullish divergence between WAD and price, go short on a bearish divergence. This indicator can be computed as follows:
+
+$$AD_{t}=\begin{cases}P_{t}^{Close}-min(P_{t-1}^{Close}, P_{t}^{Low}), & \text{if $P_{t}^{Close}>P_{t-1}^{Close}$}\\P_{t}^{Close}-max(P_{t-1}^{Close}, P_{t}^{High}), & \text{if $P_{t}^{Close}<P_{t-1}^{Close}$}\\0, & \text{else}\end{cases}$$
+
+$$Williams\;AD_{t} =Williams\;AD_{t-1} + AD_{t} * Volume_t$$
+
+![image](https://raphaellederman.github.io/assets/images/wad.png){:height="50%" width="100%"}
+
+```python
+def williams_ad(data, high_col='adj_high', low_col='adj_low', close_col='adj_close'):
+    data['williams_ad'] = 0.
+    
+    for index,row in data.iterrows():
+        if index > 0:
+            prev_value = data.at[index-1, 'williams_ad']
+            prev_close = data.at[index-1, close_col]
+            if row[close_col] > prev_close:
+                ad = row[close_col] - min(prev_close, row[low_col])
+            elif row[close_col] < prev_close:
+                ad = row[close_col] - max(prev_close, row[high_col])
+            else:
+                ad = 0.
+                                                                                                        
+            data.at[index, 'williams_ad'] = (ad+prev_value)
+        
+    return data
+```
+
+## Williams R
+
+It is a dynamic indicator which determines whether the market is overbought or oversold. It compares where a security's price closed relative to its price range over a given time period. Indicator values ranging between 80 and 100% indicate that the market is oversold. Indicator values ranging between 0 and 20% indicate that the market is overbought.
+
+$$\%R_{t} = -100 \cdot \frac{Highest\;High_t - P_{t}^{Close}}{Highest\;High_t - Lowest\;Low_{t}}$$
+
+$$\%R_{t} = -100 \cdot \frac{max\{P_{t-i+1}^{High}:\;i =1..n\} - P_{t}^{Close}}{max\{P_{t-i+1}^{High}:\;i =1..n\} - min\{P_{t-i+1}^{Low}:\;i =1..n\} }$$
+
+![image](https://raphaellederman.github.io/assets/images/wr.png){:height="50%" width="100%"}
+
+```python
+def williams_r(data, periods=14, high_col='adj_high', low_col='adj_low', close_col='adj_close'):
+    data['williams_r'] = 0.
+    
+    for index,row in data.iterrows():
+        if index > periods:
+            data.at[index, 'williams_r'] = ((max(data[high_col][index-periods:index]) - row[close_col]) / 
+                                                 (max(data[high_col][index-periods:index]) - min(data[low_col][index-periods:index])))
+        
+    return data
+```
+
+## Chaikin Oscillator
+
+It applies MACD to the accumulation-distribution line rather than closing price. To calculate the Chaikin Oscillator, we subtract a 10-day EMA of the accumulation-distribution line from a 3-day EMA of the accumulation-distribution line. This measures momentum predicted by oscillations around the accumulation-distribution line.
+
+$$Chaikin\;Oscillator_{t} = EMA_{3}(ADL) - EMA_{10}(ADL)$$
+
+![image](https://raphaellederman.github.io/assets/images/chaikin.png){:height="50%" width="100%"}
+
+```python
+def chaikin_oscillator(data, periods_short=3, periods_long=10, high_col='adj_high',
+                       low_col='adj_low', close_col='adj_close', vol_col='adj_volume'):
+    ac = pd.Series([])
+    val_last = 0
+    
+    for index, row in data.iterrows():
+        if row[high_col] != row[low_col]:
+            val = val_last + ((row[close_col] - row[low_col]) - (row[high_col] - row[close_col])) / (row[high_col] - row[low_col]) * row[vol_col]
+        else:
+            val = val_last
+        ac.at[index]= val
+    val_last = val
+
+    ema_long = ac.ewm(ignore_na=False, min_periods=0, com=periods_long, adjust=True).mean()
+    ema_short = ac.ewm(ignore_na=False, min_periods=0, com=periods_short, adjust=True).mean()
+    data['ch_osc'] = ema_short - ema_long
+
+    return data
+```
+
 ## Average Directional Movement Index
 
 It identifies in which direction the price of an asset is moving by comparing prior highs and lows and drawing two lines: a positive directional movement line ($$DI^+$$) and a negative directional movement line ($$DI^-$$). An optional third line, called directional movement ($$DX$$) gives the signal strength. When $$DI^+$$ is above $$DI^-$$, there is more upward pressure than downward pressure in the price.  Crossovers between the lines are sometimes used as trade signals to buy or sell by technical traders.
@@ -502,20 +544,6 @@ def directional_movement_index(data, periods=14, high_col='adj_high', low_col='a
     if remove_tr_col:
         data = data.drop(['true_range'], axis=1)
          
-    return data
-```
-
-## Typical Price
-
-Sometimes called the pivot point, it refers to the arithmetic average of the high, low, and closing prices for a given period. Some investors use the Typical Price rather than the closing price when creating moving average penetration systems.
-
-$$Typical\;Price_t = (P_{t}^{High} + P_{t}^{Low} + P_{t}^{Close})/3$$
-
-```python
-def typical_price(data, high_col = 'adj_high', low_col = 'adj_low', close_col = 'adj_close'):
-    
-    data['typical_price'] = (data[high_col] + data[low_col] + data[close_col]) / 3
-
     return data
 ```
 
@@ -619,6 +647,7 @@ def positive_volume_index(data, periods=255, close_col='adj_close', vol_col='adj
 
     return data
 ```
+
 ## TRIX
 
 It is a technical analysis oscillator showing the slope (i.e. derivative) of a triple-smoothed exponential moving average. It is obtained by smoothing prices a first time using an N-day EMA, then smoothing that series using another N-day EMA, and finally smoothing the resulting series using a further N-day EMA. The TRIX at time $$t$$ is then the percentage difference between today's and yesterday's value in the final smoothed series.
@@ -627,23 +656,5 @@ $$TRIX_{t} = \Delta\;EMA_{10}(EMA_{10}(EMA_{10}(P^{Close})))$$
 
 ![image](https://raphaellederman.github.io/assets/images/trix.png){:height="50%" width="100%"}
 
-## Discrete Fourier Transforms
 
-It is commonly used in order to display several long and short-term trends and eliminate noise in the data. Mathematically speaking, these transforms take a time series and map it into a frequency spectrum. It decomposes a function into sinusoids of different frequencies. Given a discrete-time signal $$x_n$$, $$n=0$$,$$ … $$, $$N-1$$, the Discrete Fourier Transform can be defined as :
-$$ X_k =  \sum\limits_{n=0}^{N-1} x_ke^{\frac{-i2\pi}{N}kn} \hspace{1cm} k=0, ..., N-1 $$
-The Discrete Fourier Transform outputs sequence of N coefficient $$X_k$$ constituting the frequency domain representation of a signal. 
-
-```python
-def fourier(data, close_col='adj_close',  n_components = [3, 6, 9, 100]):
-    close_fft = np.fft.fft(np.asarray(data[close_col].tolist()))
-    data['fft'] = close_fft
-    fft_list = np.asarray(data['fft'].tolist())
-    for num_ in n_components:
-        fft_list_m10= np.copy(fft_list); fft_list_m10[num_:-num_]=0
-        data['ifft_'+str(num_)]=np.real(np.fft.ifft(fft_list_m10))
-    return data
-```
-
-![image](https://raphaellederman.github.io/assets/images/fourier.png){:height="50%" width="100%"}
-
-> **Conclusion** : in this second article about stock market prediction, we have presented our data retrieving methodology using the Quandl API. Moreover, we have presented some technical indicators and features that might enrich our classification model. In the following article, we will present a state-of-the-art method for unsupervised feature extraction applied to time series using a custom Bidirectional Generative Adversarial Network.
+> **Conclusion** : in this second article about stock market prediction, we have presented some technical indicators and features that might enrich our classification model. In the following article, we will present a method for unsupervised feature extraction applied to time series using a custom Bidirectional Generative Adversarial Network.

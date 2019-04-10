@@ -14,7 +14,7 @@ toc: true
 toc_sticky: true
 ---
 
-In this series of articles on stock market prediction, we will describe a complete procedure for classifying whether a stock will gain or lose value over the next trading day using state-of-the-art machine learning methodologies. In order to do this, we will construct a mutli-input deep learning classifier using different types of data, from pure historical price time series, to technical indicators and Fourier transforms. Additionally, we will learn how to generate and use a rich representation of this information (historical data and additional indicators) through a custom Bidirectional Generative Adversarial Network. This unsupervised feature learning methodology allows the extraction of meaningful information on the stock price and manual features while being able to generalize on a small amount of data. These different inputs will then be used as inputs to the deep learning classifier. Our model architecture includes 2D convolutions and a particular type of Recurrent Neural Network cell : the Long Short Term Memory (LSTM). Finally, we will try to analyze the potential implementation of a long/short trading strategy based on this methodology, and conclude on the potential profitability of such an approach.
+In this series of articles on stock market prediction, we will describe a complete procedure for classifying whether a stock will gain or lose value over the next trading days using state-of-the-art machine learning models. For this purpose, we will construct a multi-input deep learning classifier that takes as input different types of data, from pure historical price time series, to technical indicators and Fourier transforms. Additionally, we will learn how to generate a rich representation of this information (historical data and additional indicators) through a custom Bidirectional Generative Adversarial Network. This unsupervised feature learning methodology allows the extraction of meaningful information on the stock price and manual features while being able to generalize on a relatively small amount of data. This alternative representation of our historical data and indicators will also be used as input to the deep learning classifier. Our model architecture combines both Convolutional Neural Networks and Recurrent Neural Networks : it includes 2D convolutions and Long Short Term Memory (LSTM) cells (a particular type of Recurrent Neural Network cell capable of efficiently capturing long term dependencies in sequences). Finally, we will describe the implementation of a long/short trading strategy based on this model, and conclude on the potential profitability of such an approach.
 
 In this first article, we will firt describe our data retrieving methodology based on the Quandl API (see [here](https://www.quandl.com/tools/api) for their website).
 
@@ -24,7 +24,7 @@ In this first article, we will firt describe our data retrieving methodology bas
 
 ## Retrieving stock market data through the Quandl API
 
- The Quandl API is free and consistent : it allows retrieving and manipulating stock market data in various formats (.csv, .xml, .json). The API calls are very simple, and the quality of the data is sufficient to build our model.
+The Quandl API is free and consistent : it allows retrieving and manipulating stock market data in various formats (.csv, .xml, .json). The API calls are very simple, and the quality of the data is sufficient to build our model.
 
 We used this API to retrieve adjusted open, low, high and close prices as well as volumes for a universe of 96 Nasdaq stocks. We used data from January 1st 2010 to December 31st 2018, holding out 2 years of data for testing our final classifier. 
 
@@ -69,3 +69,5 @@ if __name__ == '__main__':
     df_stocks = download_all()
     df_stocks = df_stocks.set_index('date')
 ```
+
+> **Conclusion** : in this first brief article about stock market prediction, we have presented our data retrieving methodology using the Quandl API. In the following article, we will describe some of the technical indicators and features that we have chosen to include in our study.
