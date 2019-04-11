@@ -170,7 +170,7 @@ random.seed(SEED)
 
 ## Training the model with Tensorflow
 
-The classifier is trained on 96 Nasdaq stocks. The first inputs correspond to the combination of the historical time series obtained through the Quandl API (adjusted open, low, high, close price and volume) and the additional features, normalized using a 20-day rolling window. Batches of 128 20-day sequences are randomly picked from this dataset in order to train the classifierb(30% of the dataset is excluded in order to test the model). The second inputs are the previously trained BiGAN's representation of the randomly picked sequences defined above. 
+The classifier is trained on 96 Nasdaq stocks. The first inputs correspond to the combination of the historical time series obtained through the Quandl API (adjusted open, low, high, close price and volume) and the additional features, normalized using a 20-day rolling window. Batches of 128 20-day sequences are randomly picked from this dataset in order to train the classifierb(the first 365 days of the dataset are excluded in order to test the model). The second inputs are the previously trained BiGAN's representation of the randomly picked sequences defined above. 
 
 ```python
 import os

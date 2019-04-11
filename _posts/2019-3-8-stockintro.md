@@ -26,7 +26,7 @@ In this first article, we will firt describe our data retrieving methodology bas
 
 The Quandl API is free and consistent : it allows retrieving and manipulating stock market data in various formats (.csv, .xml, .json). The API calls are very simple, and the quality of the data is sufficient to build our model.
 
-We used this API to retrieve adjusted open, low, high and close prices as well as volumes for a universe of 96 Nasdaq stocks. We used data from January 1st 2010 to December 31st 2018, holding out 2 years of data for testing our final classifier. 
+We used this API to retrieve adjusted open, low, high and close prices as well as volumes for a universe of 96 Nasdaq stocks. We used data from January 1st 2013 to December 31st 2018, holding out the first 365 days of data for testing our final classifier. 
 
 Here is the code I wrote in order to gather the data into a single dataframe.
 
@@ -54,7 +54,7 @@ class nasdaq():
 def download(symbols):
     print('Downloading {}'.format(symbols))
     try:
-        data = quandl.get_table('WIKI/PRICES', ticker = symbols, qopts = { 'columns': ['ticker', 'date', 'adj_open', 'adj_high', 'adj_low', 'adj_close', 'adj_volume'] }, date = { 'gte': '2010-01-01', 'lte': '2018-12-31' }, paginate=True)
+        data = quandl.get_table('WIKI/PRICES', ticker = symbols, qopts = { 'columns': ['ticker', 'date', 'adj_open', 'adj_high', 'adj_low', 'adj_close', 'adj_volume'] }, date = { 'gte': '2013-01-01', 'lte': '2018-12-31' }, paginate=True)
         return data
     except Exception as e:
         print('Failed to download {}'.format(symbol))
