@@ -12,15 +12,15 @@ In this section, you will find some of my art and music works, enjoy !
 
 ## Pain, clay.
 
-![image](https://raphaellederman.github.io/assets/images/pain.jpg){:height="100%" width="100%"}
+![image](https://raphaellederman.github.io/assets/images/pain.jpg){:height="50%" width="50%"}
 
 ## Chieftain, clay.
 
-![image](https://raphaellederman.github.io/assets/images/chieftain.jpg){:height="100%" width="100%"}
+![image](https://raphaellederman.github.io/assets/images/chieftain.jpg){:height="50%" width="50%"}
 
 ## Forearm, clay.
 
-![image](https://raphaellederman.github.io/assets/images/forearm.png){:height="100%" width="100%"}
+![image](https://raphaellederman.github.io/assets/images/forearm.png){:height="50%" width="50%"}
 
 ## Violin, extract from After You've Gone - Stéphane Grappelli and Django Reinhardt.
 
