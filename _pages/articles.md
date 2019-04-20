@@ -12,13 +12,15 @@ Here you will find short articles that I write during my free time.
 
 ## Stock Market Prediction
 
-[Data Retrieving](https://raphaellederman.github.io/articles/stockintro/)
+[Introduction and Data Retrieving](https://raphaellederman.github.io/articles/stockintro/)
 
 [Manual Feature Extraction](https://raphaellederman.github.io/articles/stockmanualfeatures/)
 
-[Unsupervised Feature Extraction with a custom Bidirectional GAN](https://raphaellederman.github.io/articles/stockadversarialfeatures/)
+[Custom Bidirectional GAN for Unsupervised Feature Extraction](https://raphaellederman.github.io/articles/stockadversarialfeatures/)
 
 [Expected Return Classification using CNN and LSTM](https://raphaellederman.github.io/articles/stockclassification/)
+
+[Results and Conclusion](https://raphaellederman.github.io/articles/stockconclusion/)
 
 ## Natural Language Processing
 

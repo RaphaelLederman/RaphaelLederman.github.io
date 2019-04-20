@@ -586,7 +586,6 @@ def positive_volume_index(data, periods=255, close_col='adj_close', vol_col='adj
 ## TRIX
 
 It is a technical analysis oscillator showing the slope (i.e. derivative) of a triple-smoothed exponential moving average. It is obtained by smoothing prices a first time using an N-day EMA, then smoothing that series using another N-day EMA, and finally smoothing the resulting series using a further N-day EMA. The TRIX at time $$t$$ is then the percentage difference between today's and yesterday's value in the final smoothed series.
-
 $$TRIX_{t} = \Delta\;EMA_{10}(EMA_{10}(EMA_{10}(P^{Close})))$$
 
 ![image](https://raphaellederman.github.io/assets/images/trix.png){:height="80%" width="160%"}
@@ -598,6 +597,6 @@ def trix(data, periods=14, signal_periods=9, close_col='adj_close'):
     data['trix'] = data['trix'].ewm(ignore_na=False, min_periods=0, com=periods, adjust=True).mean()
     data['trix_signal'] = data['trix'].ewm(ignore_na=False, min_periods=0, com=signal_periods, adjust=True).mean()
     return data
-```
+``
 
 > **Conclusion** : in this second article about stock market prediction, we have presented some technical indicators and features that might enrich our classification model. In the following article, we will present a method for unsupervised feature extraction applied to time series using a custom Bidirectional Generative Adversarial Network.

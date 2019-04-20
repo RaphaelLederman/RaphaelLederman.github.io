@@ -14,8 +14,17 @@ toc: true
 toc_sticky: true
 ---
 
-In this last article on stock market prediction, we will present the results of our study, and conclude on the limits and potential improvements of our model. Although our model seems to reach a high accuracy, it is important to stay aware that there is no 'magic formula' for predicting the stock market. If generating strong and persistent absolute returns over a long-term horizon was only a matter of a few lines of code, I wouldn't be studying financial markets and data science so conscientiously.
-Moreover, we chose not to include potential transaction costs (commissions, bid-ask spreads, market impact) in our study : such costs could strongly erode the profitability of an investment strategy based on our model.
+In this last article on stock market prediction, we will present the results of our study, and conclude on the limits and potential improvements of our model. It is important to stay aware that there is no 'magic formula' for predicting the stock market. If generating strong and persistent absolute returns over a long-term horizon was only a matter of a few lines of code, I wouldn't be studying financial markets and data science so conscientiously. Most of the authors of articles about stock market prediction using deep learning (and especially LSTM cells) published on the internet lack intellectual honesty : results seem astonishing at first sight, but are disappointing after a more thorough analysis.
+
+As an example, we can have a look at this S&P500 prediction using a simple LSTM neural network with 1 hidden layer and 20 neurons (see [here](https://www.blueskycapitalmanagement.com/machine-learning-in-finance-why-you-should-not-use-lstms-to-predict-the-stock-market/) for the article).
+
+![image](https://raphaellederman.github.io/assets/images/lstmpred1.png){:height="80%" width="160%"}
+
+The low Root Mean Square Error, reasonnable $$R^2$$, and the proximity of the predicted price to the real price could lead us to believe that the predictive model performs very well. Nevertheless, if you look more closely you can see that the prediction made for the next day is very close to the actual value of the previous day. Lagging the actual prices by 1 day compared to the predicted prices, we obtain the following chart.
+
+![image](https://raphaellederman.github.io/assets/images/lstmpred2.png){:height="80%" width="160%"}
+
+As Andrea Leccese, President and Portfolio Manager at Bluesky Capita, says : "The best guess the model can make is a value almost identical to the current day’s price. [...] This is what would be expected by a model that has no predictive ability."
 
 <script type="text/javascript" async
     src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
@@ -23,52 +32,22 @@ Moreover, we chose not to include potential transaction costs (commissions, bid-
 
 ## Classification Results
 
-After training on 96 different Nasdaq stocks, with sequences from 2014 to 2018, we were able to obtain relatively satisfying results.
+After training our model on 96 different Nasdaq stocks, with sequences from 2013 to 2016, we were obtained the following confusion matrix obtained on our test set (365 trading days from December 2016 to March 2018).
 
-The Quandl API is free and consistent : it allows retrieving and manipulating stock market data in various formats (.csv, .xml, .json). The API calls are very simple, and the quality of the data is sufficient to build our model.
+![image](https://raphaellederman.github.io/assets/images/confusion.png){:height="80%" width="160%"}
 
-We used this API to retrieve adjusted open, low, high and close prices as well as volumes for a universe of 96 Nasdaq stocks. We used data from January 1st 2010 to December 31st 2018, holding out 2 years of data for testing our final classifier. 
+Let's now display the Area Under the Receiving Operating Characteristics curve (or AUC-ROC curve) of our predictions. The AUC-ROC curve is a performance measurement for classification problems: ROC curves are used in clinical biochemistry to choose the most appropriate cut-off for a test (the best cut-off has the highest true positive rate together with the lowest false positive rate). For a more detailed description of the AUC-ROC curve, have a look at this [article](https://towardsdatascience.com/understanding-auc-roc-curve-68b2303cc9c5).
 
-Here is the code I wrote in order to gather the data into a single dataframe.
+![image](https://raphaellederman.github.io/assets/images/confusion.png){:height="80%" width="160%"}
 
-```python
-import quandl
+These results show that delivering alpha using advanced deep learning algorithms is not that simple. Stock markets may not be as efficient as Eugene Fama has stated, but the day we can predict stock movements with statistical learning has not yet arrived.
 
-quandl.ApiConfig.api_key = 'XXX'
+## Potential Improvements
 
-class nasdaq():
-    def __init__(self):
-        self.company_list = './companylist.csv'
+In order to improve our model, we could add different types of data, especially indicators based on Natural Language Processing. Investors largely rely on news flows in order to direct their investment decisions, and text mining (sentiment analysis, topic modelling etc.) could help capturing some of the information that is not perfectly reflected by prices. This could be done both at a micro and at a macro scale : we could build global economic sentiment indicators as well as tactical allocation signals based on corporate-level information (company-related news, 10K reports etc.).
 
-    def build_url(self, symbol):
-        url = 'https://www.quandl.com/api/v3/datasets/WIKI/{}.csv?api_key={}'.format(symbol, quandl_api_key)
-        return url
+Moreover, a larger panel of securities prices could be included in our model, from sector indices to derivatives or any type of correlated asset (bonds, FX, alternative risk factors etc.). For instance, the massive hedging flows arising from the banks' structured product business can massively impact options prices : we could exploit some patterns linked to supply and demand mechanisms on the equity derivatives market to improve our model. 
 
-    def symbols(self):
-        symbols = []
-        with open(self.company_list, 'r') as f:
-            next(f)
-            for line in f:
-                symbols.append(line.split(',')[0].strip())
-        return symbols
-    
-def download(symbols):
-    print('Downloading {}'.format(symbols))
-    try:
-        data = quandl.get_table('WIKI/PRICES', ticker = symbols, qopts = { 'columns': ['ticker', 'date', 'adj_open', 'adj_high', 'adj_low', 'adj_close', 'adj_volume'] }, date = { 'gte': '2010-01-01', 'lte': '2018-12-31' }, paginate=True)
-        return data
-    except Exception as e:
-        print('Failed to download {}'.format(symbol))
-        print(e)
-        
-def download_all():
-    nas = nasdaq()
-    tickers = nas.symbols()
-    return download(tickers)
+Another way of improving our predictive model would be to fine tune the hyperparameters with Bayesian optimization (with a Python library like Hyperopt). For more information on this method, have a look at this short [article](https://towardsdatascience.com/shallow-understanding-on-bayesian-optimization-324b6c1f7083).
 
-if __name__ == '__main__':
-    df_stocks = download_all()
-    df_stocks = df_stocks.set_index('date')
-```
-
-> **Conclusion** : in this first brief article about stock market prediction, we have presented our data retrieving methodology using the Quandl API. In the following article, we will describe some of the technical indicators and features that we have chosen to include in our study.
+Concerning the model itself, other architectures could be explored, including for instance LSTM neural networks with embedded layer (see [here](https://www.scitepress.org/papers/2018/67499/67499.pdf)) or optimized Artificial Neural Networks using genetic algorithm (see [here](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0155133)). We have also tested other types of classifiers, from tree based models (Random Forests and Extra Trees) to boosting algorithms (XGBoost), as their mechanism is comparable to a certain extent to the rules-based investment process of most technical traders. Overall, neural networks seem to be the best at capturing patterns and dependencies in time series in the context of our study.

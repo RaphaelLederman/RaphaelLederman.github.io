@@ -8,12 +8,12 @@ redirect_from:
     - /about/
     - /about.html
 intro: 
-    - excerpt: 'Some of my short articles machine learning/deep learning. `type="center"`'
+    - excerpt: 'Some of my short articles about machine learning/deep learning. `type="center"`'
 feature_row:
     - image_path: "https://raphaellederman.github.io/images/night.jpg"
-    alt: "Embedding"
-    title: "Embedding"
-    url: "https://raphaellederman.github.io/articles/embedding/"
+    alt: "Video Classification using Deep Learning"
+    title: "Video Classification using Deep Learning"
+    url: "https://raphaellederman.github.io/articles/videoclassification/"
     btn_label: "Read More"
     btn_class: "btn--primary"
 ---
@@ -23,9 +23,9 @@ feature_row:
 {% include feature_row %}
 
 - image_path: "https://raphaellederman.github.io/images/night.jpg"
-alt: "Support Vector Machine"
-title: "Support Vector Machine"
-url: "https://raphaellederman.github.io/articles/svm/"
+alt: "Generating Music Sequences using Deep Recurrent Neural Networks"
+title: "Generating Music Sequences using Deep Recurrent Neural Networks"
+url: "https://raphaellederman.github.io/articles/hackathon_1/"
 btn_label: "Read More"
 btn_class: "btn--primary"
 - image_path: "https://raphaellederman.github.io/images/night.jpg"
