@@ -52,6 +52,14 @@ $$ZCR_i = \frac{1}{2N} \sum\limits_{n=0}^{N-1} \mid sgn[x_i(n)]-sgn[x_i(n-1)] \m
 
 In the following formulas, $$X_i(k)$$, $$k=0$$,$$...$$, $$N-1$$ is the $$k$$th Discrete Fourier Transform coefficient of the $$i$$th frame and $$N$$ is the number of samples per frame (window size).
 
+* Spectrogram : the spectrogram of a nonstationary signal is an estimate of the time evolution of its frequency content. It shows on a two-axis diagram 3 parameters: time in x-axis, frequency on y-axis and sound power (in dB) by different color intensity. To compute signal spectrogram you only have to convert DCT coefficients from power to decibels. The relationship between power and decibels is:
+
+$$ydB = 10 * log_{10}(y)$$
+
+* Log-mel-spectrogram : The mel-frequency scale is a quasi-logarithmic spacing roughly resembling the resolution of the human auditory system. To compute log-mel-spectrogram you only have to apply the Mel-spaced filterbank (set of L triangular filters) to the audio spectrogram and get the logarithm of the result. Following is the log-mel-spectrogram of an audio signal.
+
+![image](https://raphaellederman.github.io/assets/images/spectra.png){:height="250%" width="250%"}
+
 * Spectral centroid: center of gravity of the sound spectrum.
 
 $$C_i = \frac{\sum\limits_{k=0}^{N-1} kX_i(k)} {\sum\limits_{k=0}^{N-1}X_i(k)}$$

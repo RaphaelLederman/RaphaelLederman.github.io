@@ -44,7 +44,9 @@ Here you will find short articles that I write during my free time.
 
 [Feature Extraction](https://raphaellederman.github.io/articles/audioprocessing2/)
 
-[Classification](https://raphaellederman.github.io/articles/audioprocessing3/)
+[Classification with SVM](https://raphaellederman.github.io/articles/audioprocessing3/)
+
+[Classification with Time Distributed CNN and LSTM](https://raphaellederman.github.io/articles/audioprocessing4/)
 
 ## Music
 

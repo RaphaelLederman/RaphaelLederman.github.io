@@ -1,6 +1,6 @@
 ---
 published: true
-title: Speech Emotion Recognition - Classification (3)
+title: Speech Emotion Recognition - Classification with SVM (3)
 collection: articles
 layout: single
 author_profile: false
@@ -14,7 +14,7 @@ toc: true
 toc_sticky: true
 ---
 
-For this last short article on speech emotion recognition, we will briefly present some common approaches to classifying emotions from audio features.
+For this third short article on speech emotion recognition, we will briefly present a first common approache to classifying emotions from audio features using Support Vector Machines.
 
 <script type="text/javascript" async
     src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
@@ -45,7 +45,7 @@ The first major improvement can be observed with the implementation of gender di
 
 ![image](https://raphaellederman.github.io/assets/images/audiotable3.png){:height="100%" width="100%"}
 
-As shwon above, $$\textit{surprise}$$ and $$\textit{neutral}$$ emotions obtained the poorest classification accuracies compared to other emotions such as $$\textit{scared}$$ and $$\textit{disgust}$$. The initial $$\textbf{RAVDESS}$$ database contains speeches for 7 different emotions, but our classifier has trouble differentiating $$\textit{surprise}$$ from other emotions : we can choose to delete it from our dataset. Final results look satisfyinge : we obtained an accuracy score of almost 75%, as shown in following table.
+As shown above, $$\textit{surprise}$$ and $$\textit{neutral}$$ emotions obtained the poorest classification accuracies compared to other emotions such as $$\textit{scared}$$ and $$\textit{disgust}$$. The initial $$\textbf{RAVDESS}$$ database contains speeches for 7 different emotions, but our classifier has trouble differentiating $$\textit{surprise}$$ from other emotions : we can choose to delete it from our dataset. Final results look satisfyinge : we obtained an accuracy score of almost 75%, as shown in following table.
 
 ![image](https://raphaellederman.github.io/assets/images/audiotable4.png){:height="100%" width="100%"}
 
