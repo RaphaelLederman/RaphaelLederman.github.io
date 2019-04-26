@@ -39,15 +39,15 @@ In the following table, you can see the parameters of the model's layers.
 
 ![image](https://raphaellederman.github.io/assets/images/params.png){:height="100%" width="100%"}
 
-To limit overfitting during training phase, we split our data set into train (80\%), validation (15\%) and test set (5\%). We also added early stopping to stop the training when the validation accuracy starts to decrease while the training accuracy steadily increases. We chose Stochastic Gradient Descent with decay and momentum as optimizer and a batch size of 64. 
+To limit overfitting during training phase, we split our data set into train (80%), validation (15%) and test set (5%). We also added early stopping to stop the training when the validation accuracy starts to decrease while the training accuracy steadily increases. We chose Stochastic Gradient Descent with decay and momentum as optimizer and a batch size of 64. 
 
 ## Model performance
 
 Following graphics present loss (categorical cross-entropy) and accuracy for both train and validation set:
 
-![image](https://raphaellederman.github.io/assets/images/loss_ac.png){:height="100%" width="100%"}
+![image](https://raphaellederman.github.io/assets/images/loss_acc.png){:height="100%" width="100%"}
 
-This deep learning model yielded a maximum score of \textbf{74\%} on the validation set and \textbf{72\%} on the test set. The use of deep learning and time distributed convolutional neural network allows us to achieve a 10\% higher performance compared to the traditional approach using SVM.  
+This deep learning model yielded a maximum score of $$\textbf{74%}$$ on the validation set and $$\textbf{72%}$$ on the test set. The use of deep learning and time distributed convolutional neural network allows us to achieve a 10% higher performance compared to the traditional approach using SVM.  
 
 > **Conclusion** : Convolutional Neural Networks (CNNs) and Long-Short Term Memory (LSTM) cells allow extracting features from the log-mel-spectrogram and capturing the temporal dynamic incorporated in speech. Thanks to this deep learning method, it is possible to obtain far higher accuracy than with conventional SVM approach.
 
