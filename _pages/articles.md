@@ -34,9 +34,11 @@ Here you will find short articles that I write during my free time.
 
 [Recurrent Neural Networks and LSTM](https://raphaellederman.github.io/articles/rnn/)
 
-## Computer Vision
+## Computer Vision and Video Classification
 
-[Video Classification using Deep Learning](https://raphaellederman.github.io/articles/videoclassification/)
+[Facial Detection and Feature Extraction](https://raphaellederman.github.io/articles/videoclassification/)
+
+[Classification](https://raphaellederman.github.io/articles/videoclassification_2/)
 
 ## Signal Processing and Speech Emotion Recognition
 
