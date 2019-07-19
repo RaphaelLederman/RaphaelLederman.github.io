@@ -32,15 +32,13 @@ As Andrea Leccese, President and Portfolio Manager at Bluesky Capita, says : "Th
 
 ## Classification Results
 
-After training our model on 96 different Nasdaq stocks, with sequences from 2013 to 2016, we were obtained the following confusion matrix obtained on our test set (365 trading days from December 2016 to March 2018).
+There are different ways to present classificatipn results. We could for instance present the Area Under the Receiving Operating Characteristics curve (or AUC-ROC curve) of our predictions. The AUC-ROC curve is a performance measurement for classification problems: ROC curves are used in clinical biochemistry to choose the most appropriate cut-off for a test (the best cut-off has the highest true positive rate together with the lowest false positive rate). For a more detailed description of the AUC-ROC curve, have a look at this [article](https://towardsdatascience.com/understanding-auc-roc-curve-68b2303cc9c5).
+
+Here, for the sake of brevity, we chose to simply display the the confusion matrix. After training our model on 96 different Nasdaq stocks, with sequences from 2013 to 2016, we were obtained the following confusion matrix obtained on our test set (365 trading days from December 2016 to March 2018).
 
 ![image](https://raphaellederman.github.io/assets/images/confusion.png){:height="80%" width="160%"}
 
-Let's now display the Area Under the Receiving Operating Characteristics curve (or AUC-ROC curve) of our predictions. The AUC-ROC curve is a performance measurement for classification problems: ROC curves are used in clinical biochemistry to choose the most appropriate cut-off for a test (the best cut-off has the highest true positive rate together with the lowest false positive rate). For a more detailed description of the AUC-ROC curve, have a look at this [article](https://towardsdatascience.com/understanding-auc-roc-curve-68b2303cc9c5).
-
-![image](https://raphaellederman.github.io/assets/images/confusion.png){:height="80%" width="160%"}
-
-These results show that delivering alpha using advanced deep learning algorithms is not that simple. Stock markets may not be as efficient as Eugene Fama has stated, but the day we can predict stock movements with statistical learning has not yet arrived.
+These results show that delivering alpha using advanced deep learning algorithms is not that simple. Stock markets may not be as efficient as Eugene Fama has stated, but the day we can easily predict stock movements with statistical learning has not yet arrived.
 
 ## Potential Improvements
 
